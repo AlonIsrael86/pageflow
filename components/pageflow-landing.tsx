@@ -2241,8 +2241,8 @@ export function PageFlowLanding() {
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    {generatedCode && (
+                     {/* Action Buttons */}
+                     {generatedCode && (
                       <div className="flex gap-2 flex-row-reverse">
                         <Button
                           variant="outline"
@@ -2280,9 +2280,25 @@ export function PageFlowLanding() {
                           <Code className="w-4 h-4 mr-1" />
                           הטמעה
                         </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (generatedCode) {
+                              const blob = new Blob([generatedCode], { type: 'text/html' })
+                              const url = URL.createObjectURL(blob)
+                              window.open(url, '_blank')
+                            }
+                          }}
+                          className="!bg-[#8BDBAB] !border-[#8BDBAB] !text-[#0A0A0A] hover:!bg-[#7BC99A] hover:!text-[#0A0A0A] font-hebrew font-bold"
+                          >
+                          <ExternalLink className="w-4 h-4 mr-1" />
+                          פתח בטאב חדש
+                        </Button>
                       </div>
                     )}
                   </div>
+
 
                   {/* Preview Content */}
                   {generatedCode ? (
