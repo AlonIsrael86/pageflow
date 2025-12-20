@@ -367,7 +367,8 @@ function ColorPicker({
 function generateLandingPageHTML(
   formData: FormData,
   customization: CustomizationOptions,
-  uploadedImages: UploadedImage[]
+  uploadedImages: UploadedImage[],
+  aiContent?: any
 ): string {
   const {
     primaryColor,
@@ -398,7 +399,35 @@ function generateLandingPageHTML(
   }
 
   const ctaText = actionTexts[formData.action] || "צור קשר"
+    // Extract AI content with fallbacks
+  const heroHeadline = aiContent?.hero?.headline || "הפתרון המושלם עבורך"
+  const heroSubheadline = aiContent?.hero?.subheadline || formData.description
+  const aboutTitle = aiContent?.about?.title || `אודות ${formData.businessName}`
+  const aboutText = aiContent?.about?.text || "אנחנו כאן כדי לספק לכם את השירות הטוב ביותר"
   
+  const services = aiContent?.services || [
+    { title: "שירות מקצועי", description: "תיאור קצר של השירות והיתרונות שהוא מציע ללקוחות", icon: "Star" },
+    { title: "ייעוץ אישי", description: "תיאור קצר של השירות והיתרונות שהוא מציע ללקוחות", icon: "Heart" },
+    { title: "תמיכה מלאה", description: "תיאור קצר של השירות והיתרונות שהוא מציע ללקוחות", icon: "Shield" },
+    { title: "פתרונות מותאמים", description: "תיאור קצר של השירות והיתרונות שהוא מציע ללקוחות", icon: "Zap" },
+  ]
+  
+  const testimonials = aiContent?.testimonials || [
+    { name: "יוסי כהן", role: "לקוח", text: "שירות מעולה! ממליץ בחום לכולם" },
+    { name: "רונית לוי", role: "לקוחה", text: "מקצוענים אמיתיים, תודה רבה על העבודה המצוינת" },
+    { name: "דוד ישראלי", role: "לקוח", text: "חוויה נפלאה מההתחלה ועד הסוף" },
+  ]
+  
+  const faqItems = aiContent?.faq || [
+    { question: "כמה זמן לוקח התהליך?", answer: "התהליך לוקח בין 1-2 שבועות בהתאם להיקף הפרויקט" },
+    { question: "מה כולל השירות?", answer: "השירות כולל ייעוץ מקצועי, ליווי אישי ותמיכה מלאה" },
+    { question: "האם יש אחריות?", answer: "כן, אנחנו מספקים אחריות מלאה על כל העבודות שלנו" },
+    { question: "איך מתחילים?", answer: "פשוט צרו איתנו קשר ונשמח לעזור" },
+  ]
+  
+  const ctaPrimary = aiContent?.cta?.primary || ctaText
+  const ctaSecondary = aiContent?.cta?.secondary || "למידע נוסף"
+
   // Determine if background is light or dark for text contrast
   const isLightBg = backgroundColor.toLowerCase() === "#ffffff" || 
                     backgroundColor.toLowerCase() === "#fff" || 
@@ -734,56 +763,60 @@ function generateLandingPageHTML(
     
     /* Responsive */
     @media (max-width: 968px) {
-      .nav {
-        display: none;
+      .desktop-nav {
+        display: none !important;
       }
-      
+
       .mobile-menu-btn {
-        display: block;
+        display: block !important;
       }
-      
+
+      .mobile-nav.active {
+        display: block !important;
+      }
+
       .section {
         padding: 70px 0;
       }
-      
+
       .section-title {
         font-size: 2rem;
       }
-      
+
       h1 {
         font-size: 2.5rem !important;
       }
-      
+
       .hero-buttons {
         flex-direction: column;
       }
-      
+
       .btn-primary, .btn-secondary {
         width: 100%;
       }
-      
+
       .grid-2, .grid-3, .grid-4 {
         grid-template-columns: 1fr !important;
       }
-      
+
       .contact-grid {
         grid-template-columns: 1fr !important;
       }
     }
-    
+
     @media (max-width: 480px) {
       .container {
         padding: 0 16px;
       }
-      
+
       h1 {
         font-size: 2rem !important;
       }
-      
+
       .section-title {
         font-size: 1.75rem;
       }
-      
+
       .card {
         padding: 24px;
       }
@@ -801,12 +834,31 @@ function generateLandingPageHTML(
         ${logoUrl ? `<img src="${logoUrl}" alt="${formData.businessName}" style="height: 40px; width: auto;">` : ""}
         <span style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">${formData.businessName}</span>
       </div>
-      <nav style="display: flex; gap: 32px; align-items: center;">
+      
+      <!-- Desktop Navigation -->
+      <nav class="desktop-nav" style="display: flex; gap: 32px; align-items: center;">
         <a href="#about" style="color: var(--text); text-decoration: none; opacity: 0.8; transition: opacity 0.3s;">אודות</a>
         <a href="#services" style="color: var(--text); text-decoration: none; opacity: 0.8; transition: opacity 0.3s;">שירותים</a>
         <a href="#contact" style="color: var(--text); text-decoration: none; opacity: 0.8; transition: opacity 0.3s;">צור קשר</a>
         <button class="btn-primary" style="padding: 10px 24px; font-size: 0.95rem;">${ctaText}</button>
       </nav>
+      
+      <!-- Mobile Menu Button -->
+      <button class="mobile-menu-btn" onclick="document.getElementById('mobile-menu').classList.toggle('active')" style="display: none; background: none; border: none; cursor: pointer; padding: 8px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Mobile Navigation -->
+    <div id="mobile-menu" class="mobile-nav" style="display: none; padding: 16px 24px; border-top: 1px solid var(--card-border); background: var(--card-bg);">
+      <a href="#about" style="display: block; padding: 12px 0; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--card-border);">אודות</a>
+      <a href="#services" style="display: block; padding: 12px 0; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--card-border);">שירותים</a>
+      <a href="#contact" style="display: block; padding: 12px 0; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--card-border);">צור קשר</a>
+      <button class="btn-primary" style="width: 100%; margin-top: 12px; padding: 12px 24px;">${ctaText}</button>
     </div>
   </header>
 
@@ -818,7 +870,7 @@ function generateLandingPageHTML(
       <div style="max-width: 800px; margin: 0 auto; text-align: center;">
         <h1 style="font-size: 4rem; font-weight: 900; line-height: 1.1; margin-bottom: 24px;">
           ${formData.businessName}
-          <span class="gradient-text" style="display: block; margin-top: 8px;">הפתרון המושלם עבורך</span>
+<span class="gradient-text" style="display: block; margin-top: 8px;">${heroHeadline}</span>
         </h1>
         <p style="font-size: 1.25rem; opacity: 0.8; margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
           ${formData.description}
@@ -889,13 +941,13 @@ function generateLandingPageHTML(
         <p style="font-size: 1.1rem; opacity: 0.7; max-width: 600px; margin: 0 auto;">מגוון פתרונות מקצועיים המותאמים לצרכים שלכם</p>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
-        ${["שירות מקצועי", "ייעוץ אישי", "תמיכה מלאה", "פתרונות מותאמים"].map((service, i) => `
+        ${services.map((service: any, i: number) => `
         <div class="card" style="text-align: center; padding: 40px;">
           <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor}); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
             <span style="font-size: 2rem; color: white; font-weight: 800;">0${i + 1}</span>
           </div>
-          <h3 style="font-size: 1.5rem; margin-bottom: 12px;">${service}</h3>
-          <p style="opacity: 0.7;">תיאור קצר של השירות והיתרונות שהוא מציע ללקוחות</p>
+          <h3 style="font-size: 1.5rem; margin-bottom: 12px;">${service.title}</h3>
+          <p style="opacity: 0.7;">${service.description}</p>
         </div>
         `).join("")}
       </div>
@@ -911,11 +963,7 @@ function generateLandingPageHTML(
         <h2 style="font-size: 3rem; margin-bottom: 16px;">מה הלקוחות שלנו אומרים</h2>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
-        ${[
-          { name: "יוסי כהן", text: "שירות מעולה! ממליץ בחום לכולם" },
-          { name: "רונית לוי", text: "מקצוענים אמיתיים, תודה רבה על העבודה המצוינת" },
-          { name: "דוד ישראלי", text: "חוויה נפלאה מההתחלה ועד הסוף" },
-        ].map((t) => `
+        ${testimonials.map((t: any) => `
         <div class="card">
           <div style="display: flex; gap: 4px; margin-bottom: 16px;">
             ${[1,2,3,4,5].map(() => `
@@ -927,7 +975,10 @@ function generateLandingPageHTML(
           <p style="font-size: 1.1rem; margin-bottom: 20px; opacity: 0.9;">"${t.text}"</p>
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor}); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">${t.name[0]}</div>
-            <span style="font-weight: 600;">${t.name}</span>
+            <div>
+              <span style="font-weight: 600; display: block;">${t.name}</span>
+              <span style="font-size: 0.85rem; opacity: 0.7;">${t.role || ''}</span>
+            </div>
           </div>
         </div>
         `).join("")}
@@ -1260,21 +1311,44 @@ export function PageFlowLanding() {
 
     const progressInterval = setInterval(() => {
       setGenerationProgress((prev) => {
-        if (prev >= 95) {
+        if (prev >= 90) {
           clearInterval(progressInterval)
           return prev
         }
-        return prev + Math.random() * 15
+        return prev + Math.random() * 10
       })
-    }, 200)
+    }, 300)
 
-    setTimeout(() => {
-      const html = generateLandingPageHTML(formData, customization, uploadedImages)
+    try {
+      // Call Gemini API for AI-generated content
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName: formData.businessName,
+          description: formData.description,
+          targetAudience: formData.targetAudience,
+          action: formData.action,
+          includeSections: customization.includeSections
+        })
+      })
+
+      let aiContent = null
+      
+      if (response.ok) {
+        const data = await response.json()
+        aiContent = data.content
+        console.log('AI Content generated:', aiContent)
+      } else {
+        console.warn('AI generation failed, using fallback content')
+      }
+
+      // Generate HTML with AI content (or fallback to template)
+      const html = generateLandingPageHTML(formData, customization, uploadedImages, aiContent)
       setGeneratedCode(html)
       setGenerationProgress(100)
-      setIsGenerating(false)
       clearInterval(progressInterval)
-      
+
       // Set generation limit
       localStorage.setItem("pageflow_generated", "true")
       setHasGenerated(true)
@@ -1290,8 +1364,20 @@ export function PageFlowLanding() {
           .map(([k]) => k)
           .join(', '),
       })
-    }, 2000)
+    } catch (error) {
+      console.error('Generation error:', error)
+      // Fallback to template-only generation
+      const html = generateLandingPageHTML(formData, customization, uploadedImages, null)
+      setGeneratedCode(html)
+      setGenerationProgress(100)
+      clearInterval(progressInterval)
+      setHasGenerated(true)
+      setShowLeadForm(true)
+    } finally {
+      setIsGenerating(false)
+    }
   }
+
 
   // Handle image upload
   const handleImageUpload = (file: File, url: string) => {
@@ -2123,7 +2209,7 @@ export function PageFlowLanding() {
               <div className="flex-1 min-w-0">
                 <Card className="bg-[#1A1A1A] border-white/10 overflow-hidden w-full h-full">
                   {/* Preview Header */}
-                  <div className="flex items-center justify-between p-4 border-b border-white/10">
+                  <div className="flex items-center justify-between p-4 border-b border-white/10" dir="rtl">
                     <div className="flex items-center gap-4">
                       <span className="text-sm font-hebrew text-[#9CA3AF]">תצוגה מקדימה</span>
                       
@@ -2157,14 +2243,14 @@ export function PageFlowLanding() {
 
                     {/* Action Buttons */}
                     {generatedCode && (
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-row-reverse">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={handleCopyCode}
                           className="bg-[#252525] border-white/10 text-white hover:bg-[#303030] hover:text-white font-hebrew"
                         >
-                          <Copy className="w-4 h-4 ml-1" />
+                          <Copy className="w-4 h-4 mr-1" />
                           העתק קוד
                         </Button>
                         <Button
@@ -2173,7 +2259,7 @@ export function PageFlowLanding() {
                           onClick={() => setShowCodeDialog(true)}
                           className="bg-[#252525] border-white/10 text-white hover:bg-[#303030] hover:text-white font-hebrew"
                         >
-                          <Code className="w-4 h-4 ml-1" />
+                          <Code className="w-4 h-4 mr-1" />
                           צפה בקוד
                         </Button>
                         <Button
@@ -2182,7 +2268,7 @@ export function PageFlowLanding() {
                           onClick={handleDownload}
                           className="bg-[#252525] border-white/10 text-white hover:bg-[#303030] hover:text-white font-hebrew"
                         >
-                          <Download className="w-4 h-4 ml-1" />
+                          <Download className="w-4 h-4 mr-1" />
                           הורד HTML
                         </Button>
                         <Button
@@ -2191,7 +2277,7 @@ export function PageFlowLanding() {
                           onClick={() => setShowEmbedDialog(true)}
                           className="bg-[#252525] border-white/10 text-white hover:bg-[#303030] hover:text-white font-hebrew"
                         >
-                          <Code className="w-4 h-4 ml-1" />
+                          <Code className="w-4 h-4 mr-1" />
                           הטמעה
                         </Button>
                       </div>
@@ -2200,12 +2286,18 @@ export function PageFlowLanding() {
 
                   {/* Preview Content */}
                   {generatedCode ? (
-                    <div className="relative w-full" style={{ height: '700px', minHeight: '700px' }}>
+                    <div className="relative w-full flex justify-center bg-[#0A0A0A]" style={{ height: '700px', minHeight: '700px', padding: '20px' }}>
                       <iframe 
                         srcDoc={generatedCode}
-                        className="absolute inset-0 w-full h-full border-0"
+                        className="border-0 bg-white transition-all duration-300"
                         title="Preview"
-                        style={{ width: '100%', height: '100%' }}
+                        style={{
+                          width: previewDevice === 'desktop' ? '100%' : previewDevice === 'tablet' ? '768px' : '390px',
+                          height: '100%',
+                          maxWidth: '100%',
+                          boxShadow: previewDevice !== 'desktop' ? '0 0 30px rgba(0,0,0,0.5)' : 'none',
+                          borderRadius: previewDevice !== 'desktop' ? '12px' : '0'
+                        }}
                       />
                     </div>
                   ) : (
