@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
-import emailjs from '@emailjs/browser'
+// Web3Forms - no import needed
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -1270,11 +1270,6 @@ export function PageFlowLanding() {
     }
   }, [])
 
-  // Initialize EmailJS
-  useEffect(() => {
-    emailjs.init('jYzFFcYDi-Rq2Er9f')
-  }, [])
-
   // Track page visit
   useEffect(() => {
     sendNotification('page_visit', {
@@ -1425,13 +1420,16 @@ export function PageFlowLanding() {
     setGenerationProgress(0)
   }
 
-  // Send notification email
+  // Send notification email via Web3Forms
   const sendNotification = async (action: string, data: Record<string, any>) => {
     try {
-      await emailjs.send(
-        'Alon@justintime.co.il', // Service ID
-        'pageflow_action',       // Template ID
-        {
+      await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_key: '6c06646b-04d2-4191-9230-b883e50f789e',
+          subject: `PageFlow: ${action}`,
+          from_name: 'PageFlow',
           action_type: action,
           timestamp: new Date().toLocaleString('he-IL'),
           business_name: data.businessName || 'לא צוין',
@@ -1447,51 +1445,46 @@ export function PageFlowLanding() {
           sections_enabled: data.sections || 'לא צוין',
           user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A',
           page_url: typeof window !== 'undefined' ? window.location.href : 'N/A',
-        },
-        'jYzFFcYDi-Rq2Er9f' // Public Key
-      )
+        })
+      })
       console.log('Notification sent successfully')
     } catch (error) {
       console.error('Failed to send notification:', error)
     }
   }
 
-  // Submit lead form
+  // Submit lead form via Web3Forms
   const submitLead = async () => {
     try {
-      // Send notification to Alon with the generated code
-      await emailjs.send('Alon@justintime.co.il', 'pageflow_action', {
-        action_type: 'ליד חדש + יצירת דף',
-        business_name: formData.businessName || 'לא צוין',
-        business_name_en: formData.businessNameEn || 'לא צוין',
-        target_audience: formData.targetAudience || 'לא צוין',
-        description: formData.description || 'לא צוין',
-        lead_name: leadData.name,
-        lead_phone: leadData.phone,
-        lead_email: leadData.email || 'לא צוין',
-        lead_message: leadData.message || 'ללא הודעה',
-        phone: formData.phone || 'לא צוין',
-        email: formData.email || 'לא צוין',
-        whatsapp: customization.socialLinks.whatsapp || 'לא צוין',
-        primary_color: customization.accentColor || customization.primaryColor,
-        sections_enabled: Object.entries(customization.includeSections)
-          .filter(([_, v]) => v)
-          .map(([k]) => k)
-          .join(', '),
-        page_url: `https://pageflow.justintime.co.il/${formData.businessNameEn || 'preview'}`,
-        timestamp: new Date().toLocaleString('he-IL'),
-        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A',
-        generated_code: generatedCode ? generatedCode.substring(0, 50000) : 'לא זמין' // EmailJS has size limits
-      }, 'jYzFFcYDi-Rq2Er9f')
-
-      // Send confirmation to customer
-      if (leadData.email) {
-        await emailjs.send('Alon@justintime.co.il', 'pageflow_creation', {
-          to_email: leadData.email,
-          customer_name: leadData.name,
-          business_name: formData.businessName
-        }, 'jYzFFcYDi-Rq2Er9f')
-      }
+      // Send notification to Alon with lead details
+      await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_key: '6c06646b-04d2-4191-9230-b883e50f789e',
+          subject: `🚀 ליד חדש: ${formData.businessName}`,
+          from_name: leadData.name,
+          action_type: 'ליד חדש + יצירת דף',
+          business_name: formData.businessName || 'לא צוין',
+          business_name_en: formData.businessNameEn || 'לא צוין',
+          target_audience: formData.targetAudience || 'לא צוין',
+          description: formData.description || 'לא צוין',
+          lead_name: leadData.name,
+          lead_phone: leadData.phone,
+          lead_email: leadData.email || 'לא צוין',
+          lead_message: leadData.message || 'ללא הודעה',
+          phone: formData.phone || 'לא צוין',
+          email: formData.email || 'לא צוין',
+          whatsapp: customization.socialLinks.whatsapp || 'לא צוין',
+          primary_color: customization.accentColor || customization.primaryColor,
+          sections_enabled: Object.entries(customization.includeSections)
+            .filter(([_, v]) => v)
+            .map(([k]) => k)
+            .join(', '),
+          page_url: `https://pageflow.justintime.co.il/${formData.businessNameEn || 'preview'}`,
+          timestamp: new Date().toLocaleString('he-IL'),
+        })
+      })
 
       setLeadSubmitted(true)
     } catch (error) {
@@ -1499,6 +1492,7 @@ export function PageFlowLanding() {
       setLeadSubmitted(true)
     }
   }
+
 
   // Generate embed code for WordPress
   const generateEmbedCode = () => {
@@ -2904,20 +2898,21 @@ export function PageFlowLanding() {
                 <Button
                   onClick={async () => {
                     try {
-                      await emailjs.send('Alon@justintime.co.il', 'pageflow_action', {
-                        action_type: `הרשמה לתוכנית ${selectedPlan}`,
-                        business_name: pricingFormData.name || 'לא צוין',
-                        target_audience: 'ליד מתמחור',
-                        description: `טלפון: ${pricingFormData.phone}, אימייל: ${pricingFormData.email}`,
-                        phone: pricingFormData.phone || 'לא צוין',
-                        email: pricingFormData.email || 'לא צוין',
-                        whatsapp: pricingFormData.phone || 'לא צוין',
-                        primary_color: selectedPlan,
-                        sections_enabled: `שם: ${pricingFormData.name}, טלפון: ${pricingFormData.phone}, אימייל: ${pricingFormData.email}`,
-                        page_url: typeof window !== 'undefined' ? window.location.href : 'N/A',
-                        timestamp: new Date().toLocaleString('he-IL'),
-                        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A'
-                      }, 'jYzFFcYDi-Rq2Er9f')
+                      await fetch('https://api.web3forms.com/submit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          access_key: '6c06646b-04d2-4191-9230-b883e50f789e',
+                          subject: `💰 הרשמה לתוכנית ${selectedPlan}`,
+                          from_name: pricingFormData.name,
+                          action_type: `הרשמה לתוכנית ${selectedPlan}`,
+                          name: pricingFormData.name || 'לא צוין',
+                          phone: pricingFormData.phone || 'לא צוין',
+                          email: pricingFormData.email || 'לא צוין',
+                          plan: selectedPlan,
+                          timestamp: new Date().toLocaleString('he-IL'),
+                        })
+                      })
                       
                       setPricingSubmitted(true)
                     } catch (error) {
