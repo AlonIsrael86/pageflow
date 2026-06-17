@@ -5,6 +5,13 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 export async function POST(request: NextRequest) {
   try {
+    if (process.env.ENABLE_PUBLIC_GEMINI_GENERATION !== "true") {
+      return NextResponse.json(
+        { error: "AI generation is temporarily disabled" },
+        { status: 503 }
+      )
+    }
+
     const { 
       businessName, 
       description, 
